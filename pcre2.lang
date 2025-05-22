@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ A PCRE language definition for GtkSourceView
+
+ Author: Phil Krylov
+ Copyright (C) 2025 Phil Krylov <phil@krylov.eu>
+
+ pcre.lang is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ pcre.lang is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+<language id="pcre" _name="PCRE" version="2.0" _section="Sources">
+  <metadata>
+    <property name="globs">*.pcre</property>
+  </metadata>
+
+  <styles>
+    <style id="comment" _name="Comment" map-to="def:comment"/>
+    <style id="escaper" _name="Escape character" map-to="def:comment"/>
+
+    <style id="metachar" _name="Metacharacter" map-to="def:function"/>
+    <style id="dot" _name="Dot" map-to="def:function"/>
+    <style id="charsetdash" _name="Charset dash" map-to="def:function"/>
+    <style id="charsetboundary" _name="Charset boundary" map-to="def:function"/>
+
+    <style id="quantifier" _name="Quantifier" map-to="def:type"/>
+    <style id="anchor" _name="Anchor" map-to="def:type"/>
+
+    <style id="alternator" _name="Alternator" map-to="def:operator"/>
+    <style id="groupboundary" _name="Group boundary" map-to="def:operator"/>
+    <style id="lookaroundboundary" _name="Lookaround boundary" map-to="def:operator"/>
+
+    <style id="controlchar" _name="Control character" map-to="def:special-char"/>
+    <style id="nonnewline" _name="Non-newline" map-to="def:constant"/>
+    <style id="backspace" _name="Backspace" map-to="def:special-char"/>
+    <style id="octalchar" _name="Octal character" map-to="def:special-char"/>
+    <style id="hexchar" _name="Hexadecimal character" map-to="def:special-char"/>
+    <style id="literalquoteboundary" _name="Literal quote boundary" map-to="def:constant"/>
+    <style id="posixclass" _name="POSIX class" map-to="def:constant"/>
+    <style id="unicodeproperty" _name="Unicode property" map-to="def:constant"/>
+
+    <style id="error" _name="Error" map-to="def:error"/>
+
+    <style id="backreference" _name="Backreference" map-to="def:identifier"/>
+    <style id="flag" _name="Flag" map-to="def:special-constant"/>
+    <style id="callout" _name="Callout" map-to="def:special-constant"/>
+    <style id="verb" _name="Verb" map-to="def:special-constant"/>
+
+    <style id="group" _name="Group" map-to="def:string"/>
+    <style id="groupnoncapturing" _name="Non-capturing group" map-to="def:string"/>
+    <style id="groupnamed" _name="Named group" map-to="def:string"/>
+    <style id="groupduplicate" _name="Duplicate group" map-to="def:string"/>
+    <style id="groupatomic" _name="Atomic group" map-to="def:string"/>
+    <style id="groupconditional" _name="Conditional group" map-to="def:string"/>
+    <style id="charset" _name="Charset" map-to="def:string"/>
+    <style id="lookaround" _name="Lookaround" map-to="def:string"/>
+    <style id="literalquote" _name="Literal quote" map-to="def:string"/>
+
+    <style id="groupname" _name="Group name" map-to="def:identifier"/>
+  </styles>
+
+  <default-regex-options case-sensitive="true"/>
+
+  <definitions>
+
+    <context id="escaped">
+      <match>(\\)([^wWsSsSvVhHnrtfeac0obBAzZGupPkg]|u(?![0-9A-Fa-f]{4}))</match>
+      <include>
+	<context sub-pattern="1" style-ref="escaper"/>
+      </include>
+    </context>
+
+    <context id="metachar" style-ref="metachar">
+      <match>\\[wWdDsSvVhH]</match>
+    </context>
+
+    <context id="dot" style-ref="dot">
+      <match>\.</match>
+    </context>
+
+    <context id="controlchar" style-ref="controlchar">
+      <match>\\[nrtfea]</match>
+    </context>
+    <context id="controlchar2" style-ref="controlchar">
+      <match>\\c[\x00-\x7F]</match>
+    </context>
+    <context id="controlchar3" style-ref="error">
+      <match>\\c[^\x00-\x7F]</match>
+    </context>
+
+    <context id="backspace">
+      <match>\\b</match>
+    </context>
+    <context id="escapedN" style-ref="error">
+      <match>\\N</match>
+    </context>
+
+    <context id="nonnewline" style-ref="nonnewline">
+      <match>\\N</match>
+    </context>
+
+    <define-regex id="octalchar1">\\0[0-7]{,2}</define-regex>
+    <define-regex id="octalchar2">\\o\{[0-7]+\}</define-regex>
+    <context id="octalchar" style-ref="octalchar">
+      <match>\%{octalchar1}</match>
+    </context>
+    <context id="octalchar2" style-ref="octalchar">
+      <match>\%{octalchar2}</match>
+    </context>
+    <context id="octalchar3" style-ref="error">
+      <match>\\o(?!\{[0-7]+\})</match>
+    </context>
+
+    <define-regex id="hexchar1">\\x[0-9a-fA-F]{,2}</define-regex>
+    <define-regex id="hexchar2">\\x\{[0-9a-fA-F]+\}</define-regex>
+    <define-regex id="hexchar3">\\u[0-9a-fA-F]{4}</define-regex>
+
+    <context id="hexchar" style-ref="hexchar">
+      <match>\%{hexchar1}</match>
+    </context>
+    <context id="hexchar2" style-ref="hexchar">
+      <match>\%{hexchar2}</match>
+    </context>
+    <context id="hexchar3" style-ref="hexchar">
+      <match>\%{hexchar3}</match>
+    </context>
+
+    <define-regex id="script">Arabic|Armenian|Avestan|Balinese|Bamum|Bassa_Vah|Batak|Bengali|Bopomofo|Brahmi|Braille|Buginese|Buhid|Canadian_Aboriginal|Carian|Caucasian_Albanian|Chakma|Cham|Cherokee|Common|Coptic|Cuneiform|Cypriot|Cyrillic|Deseret|Devanagari|Duployan|Egyptian_Hieroglyphs|Elbasan|Ethiopic|Georgian|Glagolitic|Gothic|Grantha|Greek|Gujarati|Gurmukhi|Han|Hangul|Hanunoo|Hebrew|Hiragana|Imperial_Aramaic|Inherited|Inscriptional_Pahlavi|Inscriptional_Parthian|Javanese|Kaithi|Kannada|Katakana|Kayah_Li|Kharoshthi|Khmer|Khojki|Khudawadi|Lao|Latin|Lepcha|Limbu|Linear_A|Linear_B|Lisu|Lycian|Lydian|Mahajani|Malayalam|Mandaic|Manichaean|Meetei_Mayek|Mende_Kikakui|Meroitic_Cursive|Meroitic_Hieroglyphs|Miao|Modi|Mongolian|Mro|Myanmar|Nabataean|New_Tai_Lue|Nko|Ogham|Ol_Chiki|Old_Italic|Old_North_Arabian|Old_Permic|Old_Persian|Old_South_Arabian|Old_Turkic|Oriya|Osmanya|Pahawh_Hmong|Palmyrene|Pau_Cin_Hau|Phags_Pa|Phoenician|Psalter_Pahlavi|Rejang|Runic|Samaritan|Saurashtra|Sharada|Shavian|Siddham|Sinhala|Sora_Sompeng|Sundanese|Syloti_Nagri|Syriac|Tagalog|Tagbanwa|Tai_Le|Tai_Tham|Tai_Viet|Takri|Tamil|Telugu|Thaana|Thai|Tibetan|Tifinagh|Tirhuta|Ugaritic|Vai|Warang_Citi|Yi</define-regex>
+    <define-regex id="general-category">C|Cc|Cf|Cn|Co|Cs|L|Ll|Lm|Lo|Lt|Lu|M|Mc|Me|Mn|N|Nd|Nl|No|P|Pc|Pd|Pe|Pf|Pi|Po|Ps|S|Sc|Sk|Sm|So|Z|Zl|Zp|Zs</define-regex>
+    <define-regex id="unicode-property">\%{script}|\%{general-category}|L[&amp;]|Any|Xan|Xps|Xsp|Xwd|Xuc</define-regex>
+    <context id="unicodeproperty" style-ref="unicodeproperty">
+      <match>\\[pP]\{\^?\%{unicode-property}\}</match>
+    </context>
+    <context id="unicodeproperty2" style-ref="unicodeproperty">
+      <match>\\[pP][CLMNPSZ]</match>
+    </context>
+    <context id="unicodeproperty3" style-ref="error">
+      <match>\\[pP](?!\{\^?\%{unicode-property}\}|[CLMNPSZ])</match>
+    </context>
+
+    <define-regex id="braces-quantifier">\{(?:\d+,?|\d+,\d+|,\d+)\}</define-regex>
+    <define-regex id="quantifier">[?*+]|\{(?:\d+,?|\d+,\d+|,\d+)\}</define-regex>
+    <define-regex id="anchor">(?:[$^]|\\[bBAzZG])</define-regex>
+
+    <context id="quantifierquantifier1" style-ref="quantifier">
+      <match>(\%{quantifier})(\%{braces-quantifier}|[*])</match>
+      <include>
+	<context sub-pattern="2" style-ref="error"/>
+      </include>
+    </context>
+    <context id="quantifierquantifier2" style-ref="quantifier">
+      <match>([?*+][?+]|\%{braces-quantifier}[?+])([?+])</match>
+      <include>
+	<context sub-pattern="2" style-ref="error"/>
+      </include>
+    </context>
+
+    <context id="quantifier" style-ref="quantifier">
+      <match>[+*?]</match>
+    </context>
+    <context id="quantifier2" style-ref="quantifier">
+      <match>\%{braces-quantifier}</match>
+    </context>
+
+    <context id="anchor" style-ref="anchor">
+      <match>\%{anchor}</match>
+    </context>
+
+    <context id="anchorquantifier1" style-ref="anchor">
+      <match>\%{anchor}(\%{braces-quantifier}|[*])</match>
+      <include>
+	<context sub-pattern="1" style-ref="error"/>
+      </include>
+    </context>
+
+    <define-regex id="hexchar">\%{hexchar1}|\%{hexchar2}|\%{hexchar3}</define-regex>
+    <define-regex id="octalchar">\%{octalchar1}|\%{octalchar2}</define-regex>
+    <define-regex id="numericchar">\%{octalchar}|\%{hexchar}</define-regex>
+    <context id="charsetrange1">
+      <match>.(-)(?=[^]]|\%{numericchar})</match>
+      <include>
+	<context sub-pattern="1" style-ref="charsetdash"/>
+      </include>
+    </context>
+    <context id="charsetrange2">
+      <match>(\%{hexchar})(-)(?=[^]]|\%{numericchar})</match>
+      <include>
+	<context sub-pattern="1" style-ref="hexchar"/>
+	<context sub-pattern="2" style-ref="charsetdash"/>
+      </include>
+    </context>
+    <context id="charsetrange3">
+      <match>(\%{octalchar})(-)(?=[^]]|\%{numericchar})</match>
+      <include>
+	<context sub-pattern="1" style-ref="octalchar"/>
+	<context sub-pattern="2" style-ref="charsetdash"/>
+      </include>
+    </context>
+
+    <context id="alternator" style-ref="alternator">
+      <match>\|</match>
+    </context>
+
+    <context id="posixclassunknown" style-ref="error">
+      <match>\[:[^:]*:\]</match>
+    </context>
+
+    <context id="posixclass">
+      <match>\[:\^?(blank|alnum|alpha|graph|ascii|cntrl|digit|lower|print|punct|space|upper|word|xdigit):\]</match>
+    </context>
+
+    <context id="onlycharset">
+      <include>
+	<context ref="charsetrange1"/>
+	<context ref="charsetrange2"/>
+	<context ref="charsetrange3"/>
+	<context ref="posixclass"/>
+	<context ref="posixclassunknown"/>
+	<context ref="backspace"/>
+      </include>
+    </context>
+
+    <context id="innercharset">
+      <include>
+	<context ref="metachar"/>
+	<context ref="escaped"/>
+	<context ref="controlchar"/>
+	<context ref="controlchar2"/>
+        <context ref="literalquote"/>
+	<context ref="escapedN"/>
+	<context ref="octalchar"/>
+	<context ref="octalchar2"/>
+	<context ref="octalchar3"/>
+	<context ref="hexchar"/>
+	<context ref="hexchar2"/>
+	<context ref="hexchar3"/>
+	<context ref="unicodeproperty"/>
+	<context ref="unicodeproperty2"/>
+	<context ref="unicodeproperty3"/>
+	<context ref="onlycharset"/>
+      </include>
+    </context>
+
+    <context id="charset" style-ref="charset" style-inside="true">
+      <start>\[\^?</start>
+      <end>\]</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="charsetboundary"/>
+	<context where="end" sub-pattern="0" style-ref="charsetboundary"/>
+	<context ref="innercharset"/>
+      </include>
+    </context>
+
+    <!-- if closing bracket follows right after opening bracket, count it as literal -->
+    <context id="charset2" style-ref="charset" style-inside="true">
+      <start>(\[\^?)(\])</start>
+      <end>\]</end>
+      <include>
+	<context where="start" sub-pattern="1" style-ref="charsetboundary"/>
+	<context where="start" sub-pattern="2" style-ref="charset"/>
+	<context where="end" sub-pattern="0" style-ref="charsetboundary"/>
+	<context ref="innercharset"/>
+      </include>
+    </context>
+
+    <context id="posixclassnaked" style-ref="error">
+      <start>\[:</start>
+      <end>:\]</end>
+      <include>
+	<context id="posixclassnakedcontent">
+	  <match>[a-z]*</match>
+	</context>
+      </include>
+    </context>
+
+    <context id="backreference" style-ref="backreference">
+      <match>\\[1-9]\d*</match>
+    </context>
+    <context id="backreference2" style-ref="backreference">
+      <match>\\g-?0*[1-9]\d*</match>
+    </context>
+    <context id="backreference3" style-ref="backreference">
+      <match>\\g\{-?0*[1-9]\d*\}</match>
+    </context>
+    <context id="backreference4" style-ref="backreference">
+      <match>\\k\{[[:alpha]]\w*\}</match>
+    </context>
+    <context id="backreference5" style-ref="backreference">
+      <match>\\k&lt;[[:alpha]]\w*&gt;</match>
+    </context>
+    <context id="backreference6" style-ref="backreference">
+      <match>\\k\'[[:alpha]]\w*\'</match>
+    </context>
+    <context id="backreference7" style-ref="error">
+      <match>\\k(?>=[^'&lt;{])</match>
+    </context>
+    <context id="backreference8" style-ref="error">
+      <match>\\g(?!-?0*[1-9]\d*|\{-?0*[1-9]\d*\})</match>
+    </context>
+
+    <context id="group" style-ref="group" style-inside="true">
+      <start>\((?=[^?+*])</start>
+      <end>\)</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="groupboundary"/>
+	<context where="end" sub-pattern="0" style-ref="groupboundary"/>
+	<context ref="pcre"/>
+      </include>
+    </context>
+
+    <context id="groupquantifier1" style-ref="group" style-inside="true">
+      <start>(\()([?*+]|\%{braces-quantifier})</start>
+      <end>\)</end>
+      <include>
+	<context where="start" sub-pattern="1" style-ref="groupboundary"/>
+	<context where="start" sub-pattern="2" style-ref="error"/>
+	<context where="end" sub-pattern="0" style-ref="groupboundary"/>
+	<context ref="pcre"/>
+      </include>
+    </context>
+
+    <define-regex id="flags">[imsx]{,4}</define-regex>
+    <context id="flag" style-ref="flag">
+      <match>\(\?\%{flags}\)</match>
+    </context>
+
+    <context id="callout" style-ref="callout">
+      <match>\(\?C\d{,3}\)</match>
+    </context>
+
+    <context id="groupnoncapturing" style-ref="groupnoncapturing" style-inside="true">
+      <start>\(\?\%{flags}?:</start>
+      <end>\)</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="groupboundary"/>
+	<context where="end" sub-pattern="0" style-ref="groupboundary"/>
+	<context ref="pcre"/>
+      </include>
+    </context>
+
+    <!-- duplicate subpattern numbers -->
+    <context id="groupduplicate" style-ref="groupduplicate" style-inside="true">
+      <start>\(\?\|</start>
+      <end>\)</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="groupboundary"/>
+	<context where="end" sub-pattern="0" style-ref="groupboundary"/>
+	<context ref="pcre"/>
+      </include>
+    </context>
+
+    <context id="groupatomic" style-ref="groupatomic" style-inside="true">
+      <start>\(\?&gt;</start>
+      <end>\)</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="groupboundary"/>
+	<context where="end" sub-pattern="0" style-ref="groupboundary"/>
+	<context ref="pcre"/>
+      </include>
+    </context>
+
+    <context id="groupnamed" style-ref="groupnamed" style-inside="true">
+      <start>\(\?P?&lt;([a-zA-Z_]\w{,31})&gt;</start>
+      <end>\)</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="groupboundary"/>
+	<context where="start" sub-pattern="1" style-ref="groupname"/>
+	<context where="end" sub-pattern="0" style-ref="groupboundary"/>
+	<context ref="pcre"/>
+      </include>
+    </context>
+
+    <context id="groupnamed2" style-ref="groupnamed" style-inside="true">
+      <start>\(\?'([a-zA-Z_]\w{,31})'</start>
+      <end>\)</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="groupboundary"/>
+	<context where="start" sub-pattern="1" style-ref="groupname"/>
+	<context where="end" sub-pattern="0" style-ref="groupboundary"/>
+	<context ref="pcre"/>
+      </include>
+    </context>
+
+    <define-regex id="name">[a-z][A-Z0-9_]{,31}</define-regex>
+    <context id="groupconditional" style-ref="groupconditional" style-inside="true">
+      <start>\(\?\((?:[+-]?[1-9]\d*|(\%{name})(?:&amp;(\%{name}))?)\)</start>
+      <end>\)</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="groupboundary"/>
+	<context where="start" sub-pattern="1" style-ref="groupname"/>
+	<context where="start" sub-pattern="2" style-ref="groupname"/>
+	<context where="end" sub-pattern="0" style-ref="groupboundary"/>
+	<context ref="pcre"/>
+      </include>
+    </context>
+
+    <context id="groupconditional2" style-ref="groupconditional" style-inside="true">
+      <start>\(\?\('(\%{name})'\)</start>
+      <end>\)</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="groupboundary"/>
+	<context where="end" sub-pattern="0" style-ref="groupboundary"/>
+	<context ref="pcre"/>
+      </include>
+    </context>
+
+    <context id="groupconditional3" style-ref="groupconditional" style-inside="true">
+      <start>\(\?\(&lt;(\%{name})&gt;\)</start>
+      <end>\)</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="groupboundary"/>
+	<context where="start" sub-pattern="1" style-ref="groupname"/>
+	<context where="end" sub-pattern="0" style-ref="groupboundary"/>
+	<context ref="pcre"/>
+      </include>
+    </context>
+
+    <context id="verb" style-ref="verb">
+      <match>\(\*(ACCEPT|F(AIL)?|(MARK)?:\w+|COMMIT|PRUNE(:\w+)?|SKIP(:\w+)?|THEN(:\w+)?)\)</match>
+    </context>
+
+    <context id="lookaround" style-ref="lookaround" style-inside="true">
+      <start>\((\?(=|!|&lt;=|&lt;!))</start>
+      <end>\)</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="lookaroundboundary"/>
+	<context where="end" sub-pattern="0" style-ref="lookaroundboundary"/>
+	<context ref="pcre"/>
+      </include>
+    </context>
+
+    <context id="comment" style-ref="comment">
+      <start>\(\?#</start>
+      <end>\)</end>
+      <include>
+         <context ref="def:in-comment"/>
+      </include>
+    </context>
+
+    <context id="literalquote" style-ref="literalquote" style-inside="true">
+      <start>\\Q</start>
+      <end>\\E</end>
+      <include>
+	<context where="start" sub-pattern="0" style-ref="literalquoteboundary"/>
+	<context where="end" sub-pattern="0" style-ref="literalquoteboundary"/>
+      </include>
+    </context>
+
+    <context id="pcre" class="no-spell-check">
+      <include>
+	<context ref="escaped"/>
+	<context ref="metachar"/>
+	<context ref="dot"/>
+	<context ref="controlchar"/>
+	<context ref="controlchar2"/>
+	<context ref="controlchar3"/>
+	<context ref="nonnewline"/>
+	<context ref="octalchar"/>
+	<context ref="octalchar2"/>
+	<context ref="octalchar3"/>
+	<context ref="hexchar"/>
+	<context ref="hexchar2"/>
+	<context ref="hexchar3"/>
+	<context ref="unicodeproperty"/>
+	<context ref="unicodeproperty2"/>
+	<context ref="unicodeproperty3"/>
+	<context ref="quantifierquantifier1"/>
+	<context ref="quantifierquantifier2"/>
+	<context ref="anchorquantifier1"/>
+	<context ref="quantifier"/>
+	<context ref="quantifier2"/>
+	<context ref="anchor"/>
+	<context ref="alternator"/>
+	<context ref="posixclassnaked"/>
+	<context ref="charset2"/>
+	<context ref="charset"/>
+	<context ref="backreference"/>
+	<context ref="backreference2"/>
+	<context ref="backreference3"/>
+	<context ref="backreference4"/>
+	<context ref="backreference5"/>
+	<context ref="backreference6"/>
+	<context ref="backreference7"/>
+	<context ref="backreference8"/>
+	<context ref="flag"/>
+	<context ref="callout"/>
+	<context ref="groupnoncapturing"/>
+	<context ref="groupduplicate"/>
+	<context ref="groupatomic"/>
+	<context ref="groupnamed"/>
+	<context ref="groupnamed2"/>
+	<context ref="groupconditional"/>
+	<context ref="groupconditional2"/>
+	<context ref="groupconditional3"/>
+	<context ref="verb"/>
+	<context ref="lookaround"/>
+	<context ref="comment"/>
+	<context ref="groupquantifier1"/>
+	<context ref="group"/>
+	<context ref="literalquote"/>
+      </include>
+    </context>
+  </definitions>
+</language>
